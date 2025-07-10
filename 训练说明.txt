@@ -1,0 +1,72 @@
+完整训练流程（推荐顺序）
+步骤 1：初始训练（trainingV1）
+Python
+trainingV1()  # 冻结预训练层，仅训练自定义层
+pred_data()   # 测试初始准确率
+预期效果：
+快速收敛，但准确率可能一般（因仅训练顶层）。
+
+
+步骤 2：全局微调（trainingV2）
+Python
+trainingV2()  # 解冻MobileNet顶层
+pred_data()   # 检查准确率提升
+何时停止：
+若 val_loss 上升，回退到 trainingV1 的模型。
+
+
+
+步骤 3：局部微调（trainingV3 或 trainingV4）
+if 模型对局部特征敏感度不足:
+    trainingV3()  # 解冻中层
+else:
+    trainingV4()  # 解冻中高层
+pred_data()
+选择策略：
+使用 show() 查看层索引，根据数据特性选择解冻范围（如 V3 更关注纹理，V4 更关注结构）。
+
+
+
+3. 辅助函数说明
+pred_data()：模型评估
+作用：
+加载训练好的模型，计算测试集（./test_mohu&vedio(m)/）的准确率。
+根据文件名匹配类别（如 A 开头的文件应预测为类别0）。
+输出示例：
+   A_001.jpg 0    # 文件名 + 预测类别
+  0.85           # 整体准确率
+
+
+training_vis()：训练可视化
+作用：
+绘制训练过程中的损失和准确率曲线，帮助判断过拟合/欠拟合。
+关键指标：
+若 train_loss ↓ 但 val_loss ↑，说明过拟合（需减少解冻层或增加数据增强）。
+
+
+show()：模型结构查看
+作用：
+打印模型各层名称和索引，用于确定 trainingV2/V3/V4 的解冻范围。
+
+
+
+
+
+
+
+
+
+训练集数据结构：
+ ./train/
+    ├── A/          # 类别0
+    │   ├── img1.jpg
+    │   └── img2.jpg
+    ├── aifo/       # 类别1
+    │   ├── img3.jpg
+    │   └── img4.jpg
+    ...
+    └── yasheng/    # 类别25
+        ├── imgN.jpg
+        └── ...
+
+./validation/
